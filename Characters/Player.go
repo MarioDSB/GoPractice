@@ -8,56 +8,44 @@ import (
 )
 
 type Player struct {
-	baseAttributes map[Stats.StatType]float32
-	name           string
-	class          PlayerClasses.CharacterInterface
+	name  string
+	class PlayerClasses.CharacterInterface
+	Stats *Stats.Stats
 }
 
 func (player *Player) GetName() string {
 	return player.name
 }
 
-func (player *Player) GetAttributes() map[Stats.StatType]float32 {
-	return player.class.GetAttributes()
-}
-
-func (player *Player) GetAttribute(statType Stats.StatType) float32 {
-	return player.GetAttributes()[statType]
-}
-
-func (player *Player) SetAttribute(statType Stats.StatType, value float32) {
-	player.class.SetAttribute(statType, value)
-}
-
 func (player *Player) ImproveDmg() {
-	currentDmg := player.GetAttribute(Stats.DMG)
-	player.class.SetAttribute(Stats.DMG, currentDmg+2)
+	newDmg := player.Stats.GetAttribute(Stats.DMG) + 2
+	player.Stats.SetAttribute(Stats.DMG, newDmg)
 }
 
 func (player *Player) ImproveDefense() {
-	currentDefense := player.GetAttribute(Stats.DEFENSE)
-	player.SetAttribute(Stats.DEFENSE, currentDefense+2)
+	newDefense := player.Stats.GetAttribute(Stats.DEFENSE) + 2
+	player.Stats.SetAttribute(Stats.DEFENSE, newDefense)
 }
 
 func (player *Player) Injured(dmg float32) {
-	currentHp := player.GetAttribute(Stats.HP)
-	player.SetAttribute(Stats.HP, currentHp-dmg)
+	newHp := player.Stats.GetAttribute(Stats.HP) - dmg
+	player.Stats.SetAttribute(Stats.HP, newHp)
 }
 
 func (player *Player) AddEquipment(object interface{}) {
 	equipment := object.(Equipments.EquipmentInterface)
-	for key, value := range player.baseAttributes {
-		equipmentStatValue := equipment.GetAttribute(key)
-		player.baseAttributes[key] = value + equipmentStatValue
+	for key, value := range player.Stats.GetAttributes() {
+		equipmentStatValue := equipment.GetStats().GetAttribute(key)
+		player.Stats.GetAttributes()[key] = value + equipmentStatValue
 	}
 }
 
 func (player *Player) CheckDead() bool {
-	return player.GetAttribute(Stats.HP) <= 0
+	return player.Stats.GetAttribute(Stats.HP) <= 0
 }
 
 func (player *Player) PrintStats() {
-	for key, value := range player.GetAttributes() {
+	for key, value := range player.Stats.GetAttributes() {
 		switch key {
 		case Stats.HP:
 			fmt.Printf("HP: %.2f\n", value)
@@ -85,8 +73,8 @@ func (player *Player) PrintStats() {
 
 func MakePlayer(character PlayerClasses.CharacterInterface, name string) *Player {
 	return &Player{
-		class:          character,
-		baseAttributes: character.GetAttributes(),
-		name:           name,
+		class: character,
+		Stats: character.GetStats(),
+		name:  name,
 	}
 }

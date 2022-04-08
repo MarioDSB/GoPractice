@@ -47,6 +47,7 @@ func (core *Core) showMainInterface() {
 				} else {
 					// Died
 					fmt.Println("You died...")
+					fmt.Printf("Fights won: %d\n", core.fights)
 					return
 				}
 			}

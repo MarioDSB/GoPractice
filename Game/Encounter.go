@@ -83,7 +83,7 @@ loop:
 		var option int
 		var err error
 		for {
-			fmt.Printf("\nYou have %.2f HP.\n", player.GetAttribute(Stats.HP))
+			fmt.Printf("\nYou have %.2f HP.\n", player.Stats.GetAttribute(Stats.HP))
 			fmt.Println("Enemies:")
 			for index, enemy := range encounter.enemies {
 				fmt.Printf("    %d) %s%s", index+1, enemy.GetEnemyName(), enemy.GetEnemyStatus())
@@ -134,7 +134,7 @@ loop:
 				break
 			case 3:
 				if encounter.runAway() {
-					return false, player.GetAttribute(Stats.HP)
+					return false, player.Stats.GetAttribute(Stats.HP)
 				}
 				break
 			default:
@@ -143,13 +143,13 @@ loop:
 			}
 
 			if checkDead {
-				return false, player.GetAttribute(Stats.HP)
+				return false, player.Stats.GetAttribute(Stats.HP)
 			}
 		}
 	}
 
 	fmt.Println("You win!")
-	return true, player.GetAttribute(Stats.HP)
+	return true, player.Stats.GetAttribute(Stats.HP)
 }
 
 func (encounter *Encounter) checkDeadEnemies() bool {
@@ -157,7 +157,7 @@ func (encounter *Encounter) checkDeadEnemies() bool {
 	toRemove := make([]int, 0)
 
 	for index, enemy := range encounter.enemies {
-		if enemy.GetAttribute(Stats.HP) <= 0 {
+		if enemy.GetStats().GetAttribute(Stats.HP) <= 0 {
 			fmt.Printf("\n%s has died.\n", enemy.GetEnemyName())
 			toRemove = append(toRemove, index)
 		}
@@ -183,13 +183,13 @@ func (encounter *Encounter) statCheck(stat float32) bool {
 func (encounter *Encounter) attack(player *Characters.Player, attackOption int) {
 	var dmg float32
 
-	if encounter.statCheck(player.GetAttribute(Stats.CRIT)) {
+	if encounter.statCheck(player.Stats.GetAttribute(Stats.CRIT)) {
 		// Critical attack
-		dmg = player.GetAttribute(Stats.DMG)*2 - encounter.enemies[attackOption-1].GetAttribute(Stats.DEFENSE)
+		dmg = player.Stats.GetAttribute(Stats.DMG)*2 - encounter.enemies[attackOption-1].GetStats().GetAttribute(Stats.DEFENSE)
 		fmt.Printf("\nYou did critical damage!%s\n", encounter.showDmg(dmg))
 	} else {
 		// Normal attack
-		dmg = player.GetAttribute(Stats.DMG) - encounter.enemies[attackOption-1].GetAttribute(Stats.DEFENSE)
+		dmg = player.Stats.GetAttribute(Stats.DMG) - encounter.enemies[attackOption-1].GetStats().GetAttribute(Stats.DEFENSE)
 		fmt.Printf("\nYou attacked.%s\n", encounter.showDmg(dmg))
 	}
 
@@ -200,11 +200,11 @@ func (encounter *Encounter) attack(player *Characters.Player, attackOption int) 
 	}
 
 	for _, enemy := range encounter.enemies {
-		if encounter.statCheck(enemy.GetAttribute(Stats.CRIT)) {
+		if encounter.statCheck(enemy.GetStats().GetAttribute(Stats.CRIT)) {
 			// Critical dmg received
-			if encounter.statCheck(player.GetAttribute(Stats.LUCK)) {
+			if encounter.statCheck(player.Stats.GetAttribute(Stats.LUCK)) {
 				// Lucked out
-				dmg = enemy.GetAttribute(Stats.DMG) - player.GetAttribute(Stats.DEFENSE)
+				dmg = enemy.GetStats().GetAttribute(Stats.DMG) - player.Stats.GetAttribute(Stats.DEFENSE)
 				if dmg < 0 {
 					dmg = 0
 				}
@@ -212,7 +212,7 @@ func (encounter *Encounter) attack(player *Characters.Player, attackOption int) 
 				fmt.Printf("%s critically attacks you, but luckily the dmg missed any vital spots.%s\n", enemy.GetEnemyName(), encounter.showDmg(dmg))
 			} else {
 				// Regular critical dmg received
-				dmg = enemy.GetAttribute(Stats.DMG)*2 - player.GetAttribute(Stats.DEFENSE)
+				dmg = enemy.GetStats().GetAttribute(Stats.DMG)*2 - player.Stats.GetAttribute(Stats.DEFENSE)
 				if dmg < 0 {
 					dmg = 0
 				}
@@ -221,13 +221,13 @@ func (encounter *Encounter) attack(player *Characters.Player, attackOption int) 
 			}
 		} else {
 			// Normal dmg received
-			if encounter.statCheck(player.GetAttribute(Stats.EVASION)) {
+			if encounter.statCheck(player.Stats.GetAttribute(Stats.EVASION)) {
 				// Evaded
 				dmg = 0
 				fmt.Printf("You are attacked by a %s, but you evade the dmg.%s\n", enemy.GetEnemyName(), encounter.showDmg(0))
 			} else {
 				// Regular normal dmg received
-				dmg = enemy.GetAttribute(Stats.DMG) - player.GetAttribute(Stats.DEFENSE)
+				dmg = enemy.GetStats().GetAttribute(Stats.DMG) - player.Stats.GetAttribute(Stats.DEFENSE)
 				if dmg < 0 {
 					dmg = 0
 				}
@@ -245,17 +245,17 @@ func (encounter *Encounter) defend(player *Characters.Player) {
 
 	fmt.Println()
 	for _, enemy := range encounter.enemies {
-		if encounter.statCheck(player.GetAttribute(Stats.EVASION)) {
+		if encounter.statCheck(player.Stats.GetAttribute(Stats.EVASION)) {
 			// Attack received evaded
-			if encounter.statCheck(player.GetAttribute(Stats.LUCK) + 0.1) {
+			if encounter.statCheck(player.Stats.GetAttribute(Stats.LUCK) + 0.1) {
 				// Lucked out
-				if encounter.statCheck(player.GetAttribute(Stats.CRIT)) {
+				if encounter.statCheck(player.Stats.GetAttribute(Stats.CRIT)) {
 					// Critical counterattack
-					dmg = player.GetAttribute(Stats.DMG)*2 - enemy.GetAttribute(Stats.DEFENSE)
+					dmg = player.Stats.GetAttribute(Stats.DMG)*2 - enemy.GetStats().GetAttribute(Stats.DEFENSE)
 					fmt.Printf("You managed to evade an attack from %s, and countered, dealing critical damage!!%s\n", enemy.GetEnemyName(), encounter.showDmg(dmg))
 				} else {
 					// Normal counterattack
-					dmg = player.GetAttribute(Stats.DMG) - enemy.GetAttribute(Stats.DEFENSE)
+					dmg = player.Stats.GetAttribute(Stats.DMG) - enemy.GetStats().GetAttribute(Stats.DEFENSE)
 					fmt.Printf("You managed to evade an attack from %s, and countered!%s\n", enemy.GetEnemyName(), encounter.showDmg(dmg))
 				}
 
@@ -266,11 +266,11 @@ func (encounter *Encounter) defend(player *Characters.Player) {
 			}
 		} else {
 			// Attack received not evaded
-			if encounter.statCheck(enemy.GetAttribute(Stats.CRIT)) {
+			if encounter.statCheck(enemy.GetStats().GetAttribute(Stats.CRIT)) {
 				// Critical attack received
-				if encounter.statCheck(player.GetAttribute(Stats.LUCK)) {
+				if encounter.statCheck(player.Stats.GetAttribute(Stats.LUCK)) {
 					// Lucked out
-					dmg = enemy.GetAttribute(Stats.DMG) - player.GetAttribute(Stats.DEFENSE)
+					dmg = enemy.GetStats().GetAttribute(Stats.DMG) - player.Stats.GetAttribute(Stats.DEFENSE)
 					if dmg < 0 {
 						dmg = 0
 					}
@@ -278,7 +278,7 @@ func (encounter *Encounter) defend(player *Characters.Player) {
 					fmt.Printf("%s managed to breach you defenses, but luckily the attack missed any vitar spots.%s\n", enemy.GetEnemyName(), encounter.showDmg(dmg))
 				} else {
 					// Regular critical attack received
-					dmg = enemy.GetAttribute(Stats.DMG)*2 - player.GetAttribute(Stats.DEFENSE)
+					dmg = enemy.GetStats().GetAttribute(Stats.DMG)*2 - player.Stats.GetAttribute(Stats.DEFENSE)
 					if dmg < 0 {
 						dmg = 0
 					}
@@ -289,12 +289,12 @@ func (encounter *Encounter) defend(player *Characters.Player) {
 				player.Injured(dmg)
 			} else {
 				// Regular attack received
-				if encounter.statCheck(player.GetAttribute(Stats.LUCK)) {
+				if encounter.statCheck(player.Stats.GetAttribute(Stats.LUCK)) {
 					// Lucked out
 					fmt.Printf("%s attacked you, but luckily you dodged it.%s\n", enemy.GetEnemyName(), encounter.showDmg(0))
 				} else {
 					// Regular attack received not lucked out
-					dmg = enemy.GetAttribute(Stats.DMG) - player.GetAttribute(Stats.DEFENSE)
+					dmg = enemy.GetStats().GetAttribute(Stats.DMG) - player.Stats.GetAttribute(Stats.DEFENSE)
 					if dmg < 0 {
 						dmg = 0
 					}

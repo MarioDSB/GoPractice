@@ -6,22 +6,20 @@ import (
 )
 
 type HealthPotion struct {
-	attributes map[Stats.StatType]float32
+	stats Stats.Stats
 	Equipments.EquipmentInterface
 }
 
-func (potion *HealthPotion) GetAttributes() map[Stats.StatType]float32 {
-	return potion.attributes
-}
-
-func (potion *HealthPotion) GetAttribute(statType Stats.StatType) float32 {
-	return potion.attributes[statType]
+func (potion *HealthPotion) GetStats() *Stats.Stats {
+	return &potion.stats
 }
 
 func MakeHealthPotion() *HealthPotion {
-	attributes := map[Stats.StatType]float32{
-		Stats.HP: 20.0,
-	}
+	potion := Stats.MakeStats(
+		map[Stats.StatType]float32{
+			Stats.HP: 20.0,
+		},
+	)
 
-	return &HealthPotion{attributes: attributes}
+	return &HealthPotion{stats: *potion}
 }
